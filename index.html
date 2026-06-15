@@ -125,13 +125,26 @@
     color: #8a6a5a;
   }
 
-  input {
+  .checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  input:not([type="checkbox"]) {
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid #e0b8a8;
     font-size: 15px;
     width: 180px;
     text-align: center;
+  }
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #e66a6a;
   }
 </style>
 </head>
@@ -161,6 +174,12 @@
         <option value="10"></option>
       </datalist>
     </div>
+    <div class="field">
+      <label class="checkbox-label" for="withoutReplacement">
+        <input id="withoutReplacement" type="checkbox" checked />
+        不放回抽取
+      </label>
+    </div>
   </div>
 
   <div class="wheel-wrap">
@@ -178,9 +197,11 @@
   const colors = ["#ffe0e0", "#fff0c7", "#dff2dd", "#dbeafe", "#eadcff", "#ffe2bd", "#d7f6f0", "#ffd9ec", "#e5ecff", "#f7e5cf"];
   const seedInput = document.getElementById("seed");
   const sliceCountInput = document.getElementById("sliceCount");
+  const withoutReplacementInput = document.getElementById("withoutReplacement");
   let drawIndex = 0;
   let currentRotation = 0;
-  let wheelOrder = [];
+  let availableNumbers = [];
+  let seededRandom = randomFromSeed("0");
   let sliceCount = 6;
   const wheel = document.getElementById("wheel");
   const result = document.getElementById("result");
@@ -206,18 +227,6 @@
       value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
       return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
     };
-  }
-
-  function buildOrder(count) {
-    const order = Array.from({ length: count }, (_, index) => index + 1);
-    const random = randomFromSeed(seedInput.value + ":" + count);
-
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(random() * (i + 1));
-      [order[i], order[j]] = [order[j], order[i]];
-    }
-
-    return order;
   }
 
   function getSliceCount() {
@@ -263,7 +272,8 @@
   function resetWheel() {
     sliceCount = getSliceCount();
     sliceCountInput.value = sliceCount;
-    wheelOrder = buildOrder(sliceCount);
+    seededRandom = randomFromSeed(seedInput.value + ":" + sliceCount + ":" + withoutReplacementInput.checked);
+    availableNumbers = Array.from({ length: sliceCount }, (_, index) => index + 1);
     drawIndex = 0;
     currentRotation = 0;
     result.innerText = "";
@@ -284,24 +294,32 @@
   }
 
   function updateRemaining() {
-    const used = wheelOrder.slice(0, drawIndex);
-    const left = Array.from({ length: sliceCount }, (_, index) => index + 1).filter(n => !used.includes(n));
-    remaining.innerText = left.length
-      ? "剩余格子：" + left.join("、")
+    if (!withoutReplacementInput.checked) {
+      remaining.innerText = "当前模式：可重复抽取";
+      return;
+    }
+
+    remaining.innerText = availableNumbers.length
+      ? "剩余格子：" + availableNumbers.join("、")
       : "所有格子已全部抽完";
   }
 
   function spin() {
-    if (drawIndex >= wheelOrder.length) {
+    if (withoutReplacementInput.checked && availableNumbers.length === 0) {
       result.innerText = "已经抽完啦";
       return;
     }
 
-    const target = wheelOrder[drawIndex];
+    const targetIndex = withoutReplacementInput.checked
+      ? Math.floor(seededRandom() * availableNumbers.length)
+      : Math.floor(seededRandom() * sliceCount);
+    const target = withoutReplacementInput.checked
+      ? availableNumbers.splice(targetIndex, 1)[0]
+      : targetIndex + 1;
     spinBtn.disabled = true;
     result.innerText = "抽取中...";
 
-    const extraTurns = 5 + Math.floor(Math.random() * 3);
+    const extraTurns = 5 + Math.floor(seededRandom() * 3);
     const finalAngle = angleForNumber(target);
 
     currentRotation += extraTurns * 360 + finalAngle;
@@ -312,7 +330,7 @@
       drawIndex++;
       updateRemaining();
 
-      if (drawIndex < wheelOrder.length) {
+      if (!withoutReplacementInput.checked || availableNumbers.length > 0) {
         spinBtn.disabled = false;
         spinBtn.innerText = "继续抽取";
       } else {
@@ -324,6 +342,7 @@
 
   seedInput.addEventListener("change", resetWheel);
   sliceCountInput.addEventListener("change", resetWheel);
+  withoutReplacementInput.addEventListener("change", resetWheel);
   resetWheel();
 </script>
 </body>
