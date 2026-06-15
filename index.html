@@ -160,18 +160,25 @@
 
   .slice-label {
     grid-area: slice-label;
+    justify-self: center;
+    width: 74px;
   }
 
   .seed-label {
     grid-area: seed-label;
+    justify-self: center;
+    width: 132px;
   }
 
   .slice-input-wrap {
     grid-area: slice-input;
+    justify-self: center;
+    width: 74px;
   }
 
   .seed-input {
     grid-area: seed-input;
+    justify-self: center;
   }
 
   .without-wrap {
@@ -204,8 +211,17 @@
 
   #sliceCount {
     width: 74px;
-    padding-left: 22px;
-    padding-right: 4px;
+    padding-left: 12px;
+    padding-right: 12px;
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+
+  #sliceCount::-webkit-outer-spin-button,
+  #sliceCount::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
   }
 
   .seed-input {
