@@ -148,6 +148,15 @@
     color: #8a6a5a;
   }
 
+  .hint {
+    max-width: 344px;
+    margin: 8px auto 0;
+    color: #8a6a5a;
+    font-size: 10.5px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
   .controls {
     display: grid;
     grid-template-columns: 104px 132px 84px;
@@ -285,6 +294,7 @@
 <body>
 <div class="container">
   <h1>随机转盘</h1>
+  <div class="hint">请输入格子数和任意数字串的随机种子，点击确认后转盘将会初始化。</div>
 
   <div class="controls">
     <label class="slice-label" for="sliceCount">格子数</label>
@@ -300,8 +310,8 @@
     <button class="confirm-btn" id="confirmSeedBtn" type="button">确认</button>
     <div class="without-wrap">
       <label class="checkbox-label" for="withoutReplacement">
-        <input id="withoutReplacement" type="checkbox" checked />
-        不放回抽取
+        <input id="withoutReplacement" type="checkbox" />
+        不重复抽取
       </label>
     </div>
   </div>
