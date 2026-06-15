@@ -323,7 +323,12 @@
   }
 
   function getInputSeedValue() {
-    const parsed = Number(seedInput.value.trim());
+    const seedText = seedInput.value.trim();
+    if (!seedText) {
+      return Date.now() + Math.floor(Math.random() * 1000000);
+    }
+
+    const parsed = Number(seedText);
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
@@ -363,7 +368,7 @@
     wheel.style.background = displayCount ? buildGradient(displayCount) : "transparent";
 
     const numberRadius = 86;
-    const rankRadius = 144;
+    const rankRadius = 148;
     const center = 140;
 
     displayedNumbers.forEach((number, index) => {
