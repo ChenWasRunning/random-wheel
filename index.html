@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>幸福瞬间抽盒器</title>
+<title>幸运转盘</title>
 <style>
   body {
     margin: 0;
@@ -78,13 +78,6 @@
     line-height: 40px;
   }
 
-  .n1 { top: 28px; left: 120px; }
-  .n2 { top: 75px; right: 42px; }
-  .n3 { bottom: 75px; right: 42px; }
-  .n4 { bottom: 28px; left: 120px; }
-  .n5 { bottom: 75px; left: 42px; }
-  .n6 { top: 75px; left: 42px; }
-
   button {
     border: none;
     background: #e66a6a;
@@ -114,8 +107,22 @@
     color: #8a6a5a;
   }
 
-  .seed {
+  .controls {
+    display: grid;
+    gap: 12px;
+    justify-items: center;
     margin-bottom: 18px;
+  }
+
+  .field {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+  }
+
+  label {
+    font-size: 14px;
+    color: #8a6a5a;
   }
 
   input {
@@ -131,75 +138,166 @@
 
 <body>
 <div class="container">
-  <h1>幸福瞬间抽盒器</h1>
-  <div class="subtitle">输入今日幸运 seed，抽取下一只线条小狗</div>
+  <h1>幸运转盘</h1>
+  <div class="subtitle">输入你的幸运数字</div>
 
-  <div class="seed">
-    <input id="seed" placeholder="输入 seed" value="20260724" />
+  <div class="controls">
+    <div class="field">
+      <input id="seed" placeholder="输入 seed" value="20260724" />
+    </div>
+    <div class="field">
+      <label for="sliceCount">幸运转盘格子数</label>
+      <input id="sliceCount" list="sliceCountOptions" inputmode="numeric" pattern="[0-9]*" value="6" />
+      <datalist id="sliceCountOptions">
+        <option value="1"></option>
+        <option value="2"></option>
+        <option value="3"></option>
+        <option value="4"></option>
+        <option value="5"></option>
+        <option value="6"></option>
+        <option value="7"></option>
+        <option value="8"></option>
+        <option value="9"></option>
+        <option value="10"></option>
+      </datalist>
+    </div>
   </div>
 
   <div class="wheel-wrap">
     <div class="pointer"></div>
-    <div class="wheel" id="wheel">
-      <div class="num n1">1</div>
-      <div class="num n2">2</div>
-      <div class="num n3">3</div>
-      <div class="num n4">4</div>
-      <div class="num n5">5</div>
-      <div class="num n6">6</div>
-    </div>
+    <div class="wheel" id="wheel"></div>
   </div>
 
   <button id="spinBtn" onclick="spin()">开始抽取</button>
 
   <div class="result" id="result"></div>
-  <div class="remaining" id="remaining">剩余盲盒：1、2、3、4、5、6</div>
+  <div class="remaining" id="remaining"></div>
 </div>
 
 <script>
-  // 你真正想要的抽取顺序
-  // 例如：第一次抽5号，第二次抽2号，第三次抽1号……
-  const fixedOrder = [5, 2, 1, 3, 4, 6];
-
+  const colors = ["#ffe0e0", "#fff0c7", "#dff2dd", "#dbeafe", "#eadcff", "#ffe2bd", "#d7f6f0", "#ffd9ec", "#e5ecff", "#f7e5cf"];
+  const seedInput = document.getElementById("seed");
+  const sliceCountInput = document.getElementById("sliceCount");
   let drawIndex = 0;
   let currentRotation = 0;
+  let wheelOrder = [];
+  let sliceCount = 6;
   const wheel = document.getElementById("wheel");
   const result = document.getElementById("result");
   const remaining = document.getElementById("remaining");
   const spinBtn = document.getElementById("spinBtn");
 
-  function angleForNumber(num) {
-    // 6等分，每个60度。
-    // 指针在上方，所以需要让目标数字转到上方。
-    // 这里手动设置每个数字中心对应角度。
-    const centers = {
-      1: 0,
-      2: 60,
-      3: 120,
-      4: 180,
-      5: 240,
-      6: 300
-    };
+  function hashSeed(seed) {
+    const text = String(seed || "0");
+    let hash = 2166136261;
+    for (let i = 0; i < text.length; i++) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
 
-    // 为了让目标停在上方，需要反向旋转到对应角度
-    return 360 - centers[num];
+  function randomFromSeed(seed) {
+    let state = hashSeed(seed);
+    return function () {
+      state += 0x6D2B79F5;
+      let value = state;
+      value = Math.imul(value ^ (value >>> 15), value | 1);
+      value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function buildOrder(count) {
+    const order = Array.from({ length: count }, (_, index) => index + 1);
+    const random = randomFromSeed(seedInput.value + ":" + count);
+
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+
+    return order;
+  }
+
+  function getSliceCount() {
+    const parsed = Number.parseInt(sliceCountInput.value, 10);
+    if (Number.isNaN(parsed)) {
+      return 6;
+    }
+    return Math.min(10, Math.max(1, parsed));
+  }
+
+  function buildGradient(count) {
+    const degrees = 360 / count;
+    const stops = [];
+
+    for (let index = 0; index < count; index++) {
+      const start = index * degrees;
+      const end = (index + 1) * degrees;
+      stops.push(`${colors[index % colors.length]} ${start}deg ${end}deg`);
+    }
+
+    return `conic-gradient(${stops.join(", ")})`;
+  }
+
+  function renderWheel() {
+    wheel.innerHTML = "";
+    wheel.style.background = buildGradient(sliceCount);
+
+    const radius = 94;
+    const center = 140;
+
+    for (let number = 1; number <= sliceCount; number++) {
+      const angle = ((number - 0.5) * 360) / sliceCount;
+      const radians = (angle - 90) * Math.PI / 180;
+      const label = document.createElement("div");
+      label.className = "num";
+      label.innerText = number;
+      label.style.left = `${center + Math.cos(radians) * radius - 20}px`;
+      label.style.top = `${center + Math.sin(radians) * radius - 20}px`;
+      wheel.appendChild(label);
+    }
+  }
+
+  function resetWheel() {
+    sliceCount = getSliceCount();
+    sliceCountInput.value = sliceCount;
+    wheelOrder = buildOrder(sliceCount);
+    drawIndex = 0;
+    currentRotation = 0;
+    result.innerText = "";
+    wheel.style.transition = "none";
+    wheel.style.transform = "rotate(0deg)";
+    renderWheel();
+    updateRemaining();
+    spinBtn.disabled = false;
+    spinBtn.innerText = "开始抽取";
+    requestAnimationFrame(() => {
+      wheel.style.transition = "transform 4s cubic-bezier(.12,.72,.18,1)";
+    });
+  }
+
+  function angleForNumber(num) {
+    const center = ((num - 0.5) * 360) / sliceCount;
+    return 360 - center;
   }
 
   function updateRemaining() {
-    const used = fixedOrder.slice(0, drawIndex);
-    const left = [1,2,3,4,5,6].filter(n => !used.includes(n));
+    const used = wheelOrder.slice(0, drawIndex);
+    const left = Array.from({ length: sliceCount }, (_, index) => index + 1).filter(n => !used.includes(n));
     remaining.innerText = left.length
-      ? "剩余盲盒：" + left.join("、")
-      : "六个幸福瞬间已全部抽完";
+      ? "剩余格子：" + left.join("、")
+      : "所有格子已全部抽完";
   }
 
   function spin() {
-    if (drawIndex >= fixedOrder.length) {
-      result.innerText = "普通款已经抽完啦";
+    if (drawIndex >= wheelOrder.length) {
+      result.innerText = "已经抽完啦";
       return;
     }
 
-    const target = fixedOrder[drawIndex];
+    const target = wheelOrder[drawIndex];
     spinBtn.disabled = true;
     result.innerText = "抽取中...";
 
@@ -210,19 +308,23 @@
     wheel.style.transform = `rotate(${currentRotation}deg)`;
 
     setTimeout(() => {
-      result.innerText = `请打开 ${target} 号盲盒`;
+      result.innerText = `抽中了 ${target} 号`;
       drawIndex++;
       updateRemaining();
 
-      if (drawIndex < fixedOrder.length) {
+      if (drawIndex < wheelOrder.length) {
         spinBtn.disabled = false;
         spinBtn.innerText = "继续抽取";
       } else {
         spinBtn.disabled = true;
-        spinBtn.innerText = "普通款已抽完";
+        spinBtn.innerText = "已抽完";
       }
     }, 4200);
   }
+
+  seedInput.addEventListener("change", resetWheel);
+  sliceCountInput.addEventListener("change", resetWheel);
+  resetWheel();
 </script>
 </body>
 </html>
