@@ -375,11 +375,15 @@
   function getInputSeedValue() {
     const seedText = seedInput.value.trim();
     if (!seedText) {
-      return Date.now() + Math.floor(Math.random() * 1000000);
+      return getRandomSeedValue();
     }
 
     const parsed = Number(seedText);
     return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function getRandomSeedValue() {
+    return Date.now() + Math.floor(Math.random() * 1000000);
   }
 
   function buildGradient(count) {
@@ -566,8 +570,20 @@
     return drawOrder[drawIndex] ?? null;
   }
 
+  function refreshRepeatDrawOrder() {
+    if (withoutReplacementInput.checked) {
+      return;
+    }
+
+    activeSeed = getRandomSeedValue();
+    drawOrder = buildDrawOrder(sliceCount);
+    drawIndex = 0;
+    renderWheel();
+  }
+
   function spin() {
     removePendingNumber();
+    refreshRepeatDrawOrder();
 
     const target = getNextTarget();
     if (target === null || displayedNumbers.length === 0) {
