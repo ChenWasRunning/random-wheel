@@ -32,9 +32,10 @@
 
   .wheel-wrap {
     position: relative;
-    width: 280px;
-    height: 280px;
+    width: 296px;
+    height: 296px;
     margin: 0 auto 24px;
+    box-sizing: content-box;
   }
 
   .pointer {
@@ -132,15 +133,37 @@
 
   .controls {
     display: grid;
-    gap: 12px;
-    justify-items: center;
+    grid-template-columns: 82px 232px;
+    grid-template-areas:
+      "slice-label seed-label"
+      "slice-input seed-input"
+      "without .";
+    column-gap: 10px;
+    row-gap: 6px;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 18px;
   }
 
-  .field {
-    display: grid;
-    gap: 6px;
-    justify-items: center;
+  .slice-label {
+    grid-area: slice-label;
+  }
+
+  .seed-label {
+    grid-area: seed-label;
+  }
+
+  .slice-input-wrap {
+    grid-area: slice-input;
+  }
+
+  .seed-control {
+    grid-area: seed-input;
+  }
+
+  .without-wrap {
+    grid-area: without;
+    justify-self: center;
   }
 
   label {
@@ -171,8 +194,12 @@
     text-align: center;
   }
 
+  #sliceCount {
+    width: 58px;
+  }
+
   .seed-control input {
-    width: 140px;
+    width: 132px;
   }
 
   input[type="checkbox"] {
@@ -189,17 +216,16 @@
   <div class="subtitle">输入你的幸运数字</div>
 
   <div class="controls">
-    <div class="field">
-      <div class="seed-control">
-        <input id="seed" placeholder="输入 seed" value="20260724" />
-        <button class="confirm-btn" id="confirmSeedBtn" type="button">确认</button>
-      </div>
+    <label class="slice-label" for="sliceCount">格子数</label>
+    <label class="seed-label" for="seed">幸运数字</label>
+    <div class="slice-input-wrap">
+      <input id="sliceCount" type="number" min="1" max="10" step="1" inputmode="numeric" value="5" />
     </div>
-    <div class="field">
-      <label for="sliceCount">幸运转盘格子数</label>
-      <input id="sliceCount" type="number" min="1" max="10" step="1" inputmode="numeric" value="6" />
+    <div class="seed-control">
+      <input id="seed" placeholder="输入 seed" value="20260724" />
+      <button class="confirm-btn" id="confirmSeedBtn" type="button">确认</button>
     </div>
-    <div class="field">
+    <div class="without-wrap">
       <label class="checkbox-label" for="withoutReplacement">
         <input id="withoutReplacement" type="checkbox" checked />
         不放回抽取
@@ -231,7 +257,7 @@
   let drawOrder = [];
   let pendingRemoval = null;
   let activeSeed = 0;
-  let sliceCount = 6;
+  let sliceCount = 5;
   let spinToken = 0;
   const wheel = document.getElementById("wheel");
   const result = document.getElementById("result");
