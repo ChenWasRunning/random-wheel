@@ -278,7 +278,7 @@
 
   <div class="controls">
     <label class="slice-label" for="sliceCount">格子数</label>
-    <label class="seed-label" for="seed">幸运数字</label>
+    <label class="seed-label" for="seed">随机种子</label>
     <div class="slice-input-wrap">
       <input id="sliceCount" type="number" min="1" max="10" step="1" inputmode="numeric" value="5" />
       <div class="slice-stepper">
@@ -286,7 +286,7 @@
         <button id="sliceDownBtn" type="button" tabindex="-1" aria-label="减少格子数">▼</button>
       </div>
     </div>
-    <input class="seed-input" id="seed" placeholder="输入 seed" value="20260724" />
+    <input class="seed-input" id="seed" placeholder="留空则随机" value="" />
     <button class="confirm-btn" id="confirmSeedBtn" type="button">确认</button>
     <div class="without-wrap">
       <label class="checkbox-label" for="withoutReplacement">
