@@ -81,6 +81,19 @@
     transform-origin: center;
   }
 
+  .rank {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 18px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #8a6a5a;
+    transform-origin: center;
+  }
+
   button {
     border: none;
     background: #e66a6a;
@@ -207,6 +220,7 @@
 
 <script>
   const colors = ["#ffe0e0", "#fff0c7", "#dff2dd", "#dbeafe", "#eadcff", "#ffe2bd", "#d7f6f0", "#ffd9ec", "#e5ecff", "#f7e5cf"];
+  const germanNumbers = ["eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn"];
   const seedInput = document.getElementById("seed");
   const confirmSeedBtn = document.getElementById("confirmSeedBtn");
   const sliceCountInput = document.getElementById("sliceCount");
@@ -214,9 +228,9 @@
   let drawIndex = 0;
   let currentRotation = 0;
   let displayedNumbers = [];
+  let drawOrder = [];
   let pendingRemoval = null;
   let activeSeed = 0;
-  let seededRandom = randomFromSeed("0");
   let sliceCount = 6;
   let spinToken = 0;
   const wheel = document.getElementById("wheel");
@@ -271,12 +285,30 @@
     return `conic-gradient(${stops.join(", ")})`;
   }
 
+  function buildDrawOrder(count) {
+    const order = Array.from({ length: count }, (_, index) => index + 1);
+    const random = randomFromSeed(activeSeed);
+
+    for (let index = order.length - 1; index > 0; index--) {
+      const targetIndex = Math.floor(random() * (index + 1));
+      [order[index], order[targetIndex]] = [order[targetIndex], order[index]];
+    }
+
+    return order;
+  }
+
+  function getRankLabel(number) {
+    const rankIndex = drawOrder.indexOf(number);
+    return rankIndex >= 0 ? germanNumbers[rankIndex] : "";
+  }
+
   function renderWheel() {
     const displayCount = displayedNumbers.length;
     wheel.innerHTML = "";
     wheel.style.background = displayCount ? buildGradient(displayCount) : "transparent";
 
-    const radius = 94;
+    const numberRadius = 86;
+    const rankRadius = 119;
     const center = 140;
 
     displayedNumbers.forEach((number, index) => {
@@ -285,17 +317,25 @@
       const label = document.createElement("div");
       label.className = "num";
       label.innerText = number;
-      label.style.left = `${center + Math.cos(radians) * radius - 20}px`;
-      label.style.top = `${center + Math.sin(radians) * radius - 20}px`;
+      label.style.left = `${center + Math.cos(radians) * numberRadius - 20}px`;
+      label.style.top = `${center + Math.sin(radians) * numberRadius - 20}px`;
       label.style.transform = `rotate(${angle}deg)`;
       wheel.appendChild(label);
+
+      const rank = document.createElement("div");
+      rank.className = "rank";
+      rank.innerText = getRankLabel(number);
+      rank.style.left = `${center + Math.cos(radians) * rankRadius - 24}px`;
+      rank.style.top = `${center + Math.sin(radians) * rankRadius - 9}px`;
+      rank.style.transform = `rotate(${angle}deg)`;
+      wheel.appendChild(rank);
     });
   }
 
   function resetWheel() {
     sliceCount = getSliceCount();
     sliceCountInput.value = sliceCount;
-    seededRandom = randomFromSeed(activeSeed);
+    drawOrder = buildDrawOrder(sliceCount);
     displayedNumbers = Array.from({ length: sliceCount }, (_, index) => index + 1);
     pendingRemoval = null;
     drawIndex = 0;
@@ -352,21 +392,38 @@
       : "所有格子已全部抽完";
   }
 
+  function getNextTarget() {
+    if (drawOrder.length === 0) {
+      return null;
+    }
+
+    if (!withoutReplacementInput.checked) {
+      return drawOrder[drawIndex % drawOrder.length];
+    }
+
+    return drawOrder[drawIndex] ?? null;
+  }
+
   function spin() {
     removePendingNumber();
 
-    if (displayedNumbers.length === 0) {
+    const target = getNextTarget();
+    if (target === null || displayedNumbers.length === 0) {
       result.innerText = "已经抽完啦";
       return;
     }
 
     const token = ++spinToken;
-    const targetIndex = Math.floor(seededRandom() * displayedNumbers.length);
-    const target = displayedNumbers[targetIndex];
+    const targetIndex = displayedNumbers.indexOf(target);
+    if (targetIndex === -1) {
+      result.innerText = "已经抽完啦";
+      return;
+    }
+
     spinBtn.disabled = true;
     result.innerText = "抽取中...";
 
-    const extraTurns = 5 + Math.floor(seededRandom() * 3);
+    const extraTurns = 6;
     const finalAngle = angleForIndex(targetIndex, displayedNumbers.length);
     const currentAngle = ((currentRotation % 360) + 360) % 360;
     const deltaAngle = (finalAngle - currentAngle + 360) % 360;
