@@ -426,6 +426,14 @@
     return rankIndex >= 0 ? germanNumbers[rankIndex] : "";
   }
 
+  function updateUrlHash() {
+    if (!drawOrder.length) {
+      return;
+    }
+
+    window.history.replaceState(null, "", `#${drawOrder.join("")}`);
+  }
+
   function renderWheel() {
     const displayCount = displayedNumbers.length;
     wheel.innerHTML = "";
@@ -460,6 +468,7 @@
     sliceCount = activeSliceCount;
     sliceCountInput.value = sliceCount;
     drawOrder = buildDrawOrder(sliceCount);
+    updateUrlHash();
     displayedNumbers = Array.from({ length: sliceCount }, (_, index) => index + 1);
     pendingRemoval = null;
     drawIndex = 0;
@@ -587,6 +596,7 @@
 
     activeSeed = getRandomSeedValue();
     drawOrder = buildDrawOrder(sliceCount);
+    updateUrlHash();
     drawIndex = 0;
     renderWheel();
   }
