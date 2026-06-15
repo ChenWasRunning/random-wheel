@@ -446,7 +446,7 @@
     if (isMobile) {
       const pagePath = window.location.pathname.replace(/\/index\.html$/, "/");
       const basePath = pagePath.endsWith("/") ? pagePath : `${pagePath}/`;
-      document.title = `github.io${basePath}${seedHash}`;
+      document.title = `github.io/randwheel/${seedHash}`;
       window.history.replaceState(null, "", `${basePath}${seedHash}`);
       return;
     }
