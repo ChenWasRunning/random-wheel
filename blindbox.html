@@ -94,21 +94,6 @@
     transform-origin: center;
   }
 
-  .rank {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;
-    height: 18px;
-    font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
-    font-size: 11px;
-    font-style: italic;
-    font-weight: 700;
-    color: #9a5a50;
-    transform-origin: center;
-  }
-
   button {
     border: none;
     background: #e66a6a;
@@ -329,7 +314,6 @@
 
 <script>
   const colors = ["#ffe0e0", "#fff0c7", "#dff2dd", "#dbeafe", "#eadcff", "#ffe2bd", "#d7f6f0", "#ffd9ec", "#e5ecff", "#f7e5cf"];
-  const germanNumbers = ["eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn"];
   const seedInput = document.getElementById("seed");
   const confirmSeedBtn = document.getElementById("confirmSeedBtn");
   const sliceCountInput = document.getElementById("sliceCount");
@@ -421,9 +405,35 @@
     return order;
   }
 
-  function getRankLabel(number) {
-    const rankIndex = drawOrder.indexOf(number);
-    return rankIndex >= 0 ? germanNumbers[rankIndex] : "";
+  function getOrderCode(number) {
+    if (number === 2 && sliceCount >= 10) {
+      return "Zw";
+    }
+    if (number === 6 && sliceCount >= 7) {
+      return "Se";
+    }
+    if (number === 7) {
+      return "Si";
+    }
+    if (number === 10) {
+      return "Ze";
+    }
+
+    const codes = {
+      1: "E",
+      2: "Z",
+      3: "D",
+      4: "V",
+      5: "F",
+      6: "S",
+      8: "A",
+      9: "N"
+    };
+    return codes[number] || String(number);
+  }
+
+  function encodeDrawOrder() {
+    return drawOrder.map(getOrderCode).join("");
   }
 
   function updateUrlHash() {
@@ -431,7 +441,7 @@
       return;
     }
 
-    window.history.replaceState(null, "", `#${drawOrder.join("")}`);
+    window.history.replaceState(null, "", `#seed_${encodeDrawOrder()}`);
   }
 
   function renderWheel() {
@@ -440,7 +450,6 @@
     wheel.style.background = displayCount ? buildGradient(displayCount) : "transparent";
 
     const numberRadius = 86;
-    const rankRadius = 146;
     const center = 140;
 
     displayedNumbers.forEach((number, index) => {
@@ -453,14 +462,6 @@
       label.style.top = `${center + Math.sin(radians) * numberRadius - 20}px`;
       label.style.transform = `rotate(${angle}deg)`;
       wheel.appendChild(label);
-
-      const rank = document.createElement("div");
-      rank.className = "rank";
-      rank.innerText = getRankLabel(number);
-      rank.style.left = `${center + Math.cos(radians) * rankRadius - 24}px`;
-      rank.style.top = `${center + Math.sin(radians) * rankRadius - 9}px`;
-      rank.style.transform = `rotate(${angle}deg)`;
-      wheel.appendChild(rank);
     });
   }
 
