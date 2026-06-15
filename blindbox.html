@@ -32,6 +32,16 @@
     box-sizing: content-box;
   }
 
+  .wheel-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    pointer-events: none;
+    z-index: 0;
+  }
+
   .pointer {
     position: absolute;
     top: -8px;
@@ -60,10 +70,10 @@
     );
     position: relative;
     transition: transform 4s cubic-bezier(.12,.72,.18,1);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
     cursor: grab;
     touch-action: none;
     user-select: none;
+    z-index: 1;
   }
 
   .wheel.dragging {
