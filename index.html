@@ -124,7 +124,7 @@
   .confirm-btn {
     grid-area: confirm;
     justify-self: start;
-    margin-left: 6px;
+    margin-left: 14px;
     padding: 10px 14px;
     border-radius: 10px;
     font-size: 15px;
@@ -146,11 +146,11 @@
 
   .controls {
     display: grid;
-    grid-template-columns: 104px 132px 70px;
+    grid-template-columns: 104px 132px 84px;
     grid-template-areas:
       "slice-label seed-label ."
       "slice-input seed-input confirm"
-      "without . .";
+      "without without .";
     column-gap: 12px;
     row-gap: 6px;
     justify-content: center;
@@ -177,6 +177,7 @@
   .without-wrap {
     grid-area: without;
     justify-self: center;
+    width: 100%;
   }
 
   label {
