@@ -122,6 +122,9 @@
   }
 
   .confirm-btn {
+    grid-area: confirm;
+    justify-self: start;
+    margin-left: 6px;
     padding: 10px 14px;
     border-radius: 10px;
     font-size: 15px;
@@ -143,12 +146,12 @@
 
   .controls {
     display: grid;
-    grid-template-columns: 82px 232px;
+    grid-template-columns: 104px 132px 70px;
     grid-template-areas:
-      "slice-label seed-label"
-      "slice-input seed-input"
-      "without .";
-    column-gap: 10px;
+      "slice-label seed-label ."
+      "slice-input seed-input confirm"
+      "without . .";
+    column-gap: 12px;
     row-gap: 6px;
     justify-content: center;
     align-items: center;
@@ -167,7 +170,7 @@
     grid-area: slice-input;
   }
 
-  .seed-control {
+  .seed-input {
     grid-area: seed-input;
   }
 
@@ -188,14 +191,8 @@
     cursor: pointer;
   }
 
-  .seed-control {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    align-items: center;
-  }
-
   input:not([type="checkbox"]) {
+    box-sizing: border-box;
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid #e0b8a8;
@@ -205,10 +202,12 @@
   }
 
   #sliceCount {
-    width: 58px;
+    width: 74px;
+    padding-left: 22px;
+    padding-right: 4px;
   }
 
-  .seed-control input {
+  .seed-input {
     width: 132px;
   }
 
@@ -231,10 +230,8 @@
     <div class="slice-input-wrap">
       <input id="sliceCount" type="number" min="1" max="10" step="1" inputmode="numeric" value="5" />
     </div>
-    <div class="seed-control">
-      <input id="seed" placeholder="输入 seed" value="20260724" />
-      <button class="confirm-btn" id="confirmSeedBtn" type="button">确认</button>
-    </div>
+    <input class="seed-input" id="seed" placeholder="输入 seed" value="20260724" />
+    <button class="confirm-btn" id="confirmSeedBtn" type="button">确认</button>
     <div class="without-wrap">
       <label class="checkbox-label" for="withoutReplacement">
         <input id="withoutReplacement" type="checkbox" checked />
@@ -267,6 +264,7 @@
   let drawOrder = [];
   let pendingRemoval = null;
   let activeSeed = 0;
+  let activeSliceCount = 5;
   let sliceCount = 5;
   let spinToken = 0;
   let isDragging = false;
@@ -298,10 +296,10 @@
     };
   }
 
-  function getSliceCount() {
+  function getInputSliceCount() {
     const parsed = Number.parseInt(sliceCountInput.value, 10);
     if (Number.isNaN(parsed)) {
-      return 5;
+      return activeSliceCount;
     }
     return Math.min(10, Math.max(1, parsed));
   }
@@ -372,7 +370,7 @@
   }
 
   function resetWheel() {
-    sliceCount = getSliceCount();
+    sliceCount = activeSliceCount;
     sliceCountInput.value = sliceCount;
     drawOrder = buildDrawOrder(sliceCount);
     displayedNumbers = Array.from({ length: sliceCount }, (_, index) => index + 1);
@@ -392,8 +390,9 @@
     });
   }
 
-  function confirmSeed() {
+  function confirmSettings() {
     activeSeed = getInputSeedValue();
+    activeSliceCount = getInputSliceCount();
     resetWheel();
   }
 
@@ -535,18 +534,14 @@
     }, 4200);
   }
 
-  confirmSeedBtn.addEventListener("click", confirmSeed);
-  seedInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      confirmSeed();
-    }
+  confirmSeedBtn.addEventListener("click", confirmSettings);
+  sliceCountInput.addEventListener("change", () => {
+    sliceCountInput.value = getInputSliceCount();
   });
-  sliceCountInput.addEventListener("change", resetWheel);
   sliceCountInput.addEventListener("wheel", (event) => {
     event.preventDefault();
     const direction = event.deltaY > 0 ? -1 : 1;
-    sliceCountInput.value = Math.min(10, Math.max(1, getSliceCount() + direction));
-    resetWheel();
+    sliceCountInput.value = Math.min(10, Math.max(1, getInputSliceCount() + direction));
   }, { passive: false });
   withoutReplacementInput.addEventListener("change", resetWheel);
   wheel.addEventListener("pointerdown", startDrag);
@@ -554,6 +549,7 @@
   wheel.addEventListener("pointerup", endDrag);
   wheel.addEventListener("pointercancel", endDrag);
   activeSeed = getInputSeedValue();
+  activeSliceCount = getInputSliceCount();
   resetWheel();
 </script>
 </body>
