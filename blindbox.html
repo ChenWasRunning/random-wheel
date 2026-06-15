@@ -230,6 +230,15 @@
     width: 16px;
     overflow: hidden;
     border-radius: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .slice-input-wrap:hover .slice-stepper,
+  .slice-input-wrap:focus-within .slice-stepper {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .slice-stepper button {
