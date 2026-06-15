@@ -439,11 +439,11 @@
     displayedNumbers = Array.from({ length: sliceCount }, (_, index) => index + 1);
     pendingRemoval = null;
     drawIndex = 0;
-    currentRotation = 0;
+    currentRotation = Math.random() * 360;
     spinToken++;
     result.innerText = "";
     wheel.style.transition = "none";
-    wheel.style.transform = "rotate(0deg)";
+    wheel.style.transform = `rotate(${currentRotation}deg)`;
     renderWheel();
     updateRemaining();
     spinBtn.disabled = false;
