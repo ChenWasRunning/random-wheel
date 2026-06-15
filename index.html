@@ -97,6 +97,13 @@
     cursor: not-allowed;
   }
 
+  .confirm-btn {
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+
   .result {
     margin-top: 22px;
     font-size: 22px;
@@ -135,6 +142,13 @@
     cursor: pointer;
   }
 
+  .seed-control {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+  }
+
   input:not([type="checkbox"]) {
     padding: 10px 12px;
     border-radius: 10px;
@@ -142,6 +156,10 @@
     font-size: 15px;
     width: 180px;
     text-align: center;
+  }
+
+  .seed-control input {
+    width: 140px;
   }
 
   input[type="checkbox"] {
@@ -159,23 +177,14 @@
 
   <div class="controls">
     <div class="field">
-      <input id="seed" placeholder="输入 seed" value="20260724" />
+      <div class="seed-control">
+        <input id="seed" placeholder="输入 seed" value="20260724" />
+        <button class="confirm-btn" id="confirmSeedBtn" type="button">确认</button>
+      </div>
     </div>
     <div class="field">
       <label for="sliceCount">幸运转盘格子数</label>
-      <input id="sliceCount" type="number" list="sliceCountOptions" min="1" max="10" step="1" inputmode="numeric" value="6" />
-      <datalist id="sliceCountOptions">
-        <option value="1"></option>
-        <option value="2"></option>
-        <option value="3"></option>
-        <option value="4"></option>
-        <option value="5"></option>
-        <option value="6"></option>
-        <option value="7"></option>
-        <option value="8"></option>
-        <option value="9"></option>
-        <option value="10"></option>
-      </datalist>
+      <input id="sliceCount" type="number" min="1" max="10" step="1" inputmode="numeric" value="6" />
     </div>
     <div class="field">
       <label class="checkbox-label" for="withoutReplacement">
@@ -199,14 +208,17 @@
 <script>
   const colors = ["#ffe0e0", "#fff0c7", "#dff2dd", "#dbeafe", "#eadcff", "#ffe2bd", "#d7f6f0", "#ffd9ec", "#e5ecff", "#f7e5cf"];
   const seedInput = document.getElementById("seed");
+  const confirmSeedBtn = document.getElementById("confirmSeedBtn");
   const sliceCountInput = document.getElementById("sliceCount");
   const withoutReplacementInput = document.getElementById("withoutReplacement");
   let drawIndex = 0;
   let currentRotation = 0;
   let displayedNumbers = [];
   let pendingRemoval = null;
+  let activeSeed = 0;
   let seededRandom = randomFromSeed("0");
   let sliceCount = 6;
+  let spinToken = 0;
   const wheel = document.getElementById("wheel");
   const result = document.getElementById("result");
   const remaining = document.getElementById("remaining");
@@ -241,7 +253,7 @@
     return Math.min(10, Math.max(1, parsed));
   }
 
-  function getSeedValue() {
+  function getInputSeedValue() {
     const parsed = Number(seedInput.value.trim());
     return Number.isFinite(parsed) ? parsed : 0;
   }
@@ -283,11 +295,12 @@
   function resetWheel() {
     sliceCount = getSliceCount();
     sliceCountInput.value = sliceCount;
-    seededRandom = randomFromSeed(getSeedValue());
+    seededRandom = randomFromSeed(activeSeed);
     displayedNumbers = Array.from({ length: sliceCount }, (_, index) => index + 1);
     pendingRemoval = null;
     drawIndex = 0;
     currentRotation = 0;
+    spinToken++;
     result.innerText = "";
     wheel.style.transition = "none";
     wheel.style.transform = "rotate(0deg)";
@@ -298,6 +311,11 @@
     requestAnimationFrame(() => {
       wheel.style.transition = "transform 4s cubic-bezier(.12,.72,.18,1)";
     });
+  }
+
+  function confirmSeed() {
+    activeSeed = getInputSeedValue();
+    resetWheel();
   }
 
   function removePendingNumber() {
@@ -342,6 +360,7 @@
       return;
     }
 
+    const token = ++spinToken;
     const targetIndex = Math.floor(seededRandom() * displayedNumbers.length);
     const target = displayedNumbers[targetIndex];
     spinBtn.disabled = true;
@@ -356,6 +375,10 @@
     wheel.style.transform = `rotate(${currentRotation}deg)`;
 
     setTimeout(() => {
+      if (token !== spinToken) {
+        return;
+      }
+
       result.innerText = `抽中了 ${target} 号`;
       drawIndex++;
       pendingRemoval = withoutReplacementInput.checked ? target : null;
@@ -371,7 +394,12 @@
     }, 4200);
   }
 
-  seedInput.addEventListener("change", resetWheel);
+  confirmSeedBtn.addEventListener("click", confirmSeed);
+  seedInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      confirmSeed();
+    }
+  });
   sliceCountInput.addEventListener("change", resetWheel);
   sliceCountInput.addEventListener("wheel", (event) => {
     event.preventDefault();
@@ -380,6 +408,7 @@
     resetWheel();
   }, { passive: false });
   withoutReplacementInput.addEventListener("change", resetWheel);
+  activeSeed = getInputSeedValue();
   resetWheel();
 </script>
 </body>
