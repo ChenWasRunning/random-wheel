@@ -156,6 +156,7 @@
     grid-area: slice-label;
     justify-self: center;
     width: 74px;
+    transform: translateX(-8px);
   }
 
   .seed-label {
@@ -167,6 +168,7 @@
   .slice-input-wrap {
     grid-area: slice-input;
     justify-self: center;
+    position: relative;
     width: 74px;
     transform: translateX(-8px);
   }
@@ -219,6 +221,35 @@
     -webkit-appearance: none;
   }
 
+  .slice-stepper {
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    bottom: 4px;
+    display: grid;
+    width: 16px;
+    overflow: hidden;
+    border-radius: 6px;
+  }
+
+  .slice-stepper button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    padding: 0;
+    border-radius: 0;
+    background: rgba(230, 106, 106, 0.12);
+    box-shadow: none;
+    color: #9a5a50;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .slice-stepper button:hover {
+    background: rgba(230, 106, 106, 0.22);
+  }
+
   .seed-input {
     width: 132px;
   }
@@ -240,6 +271,10 @@
     <label class="seed-label" for="seed">幸运数字</label>
     <div class="slice-input-wrap">
       <input id="sliceCount" type="number" min="1" max="10" step="1" inputmode="numeric" value="5" />
+      <div class="slice-stepper">
+        <button id="sliceUpBtn" type="button" tabindex="-1" aria-label="增加格子数">▲</button>
+        <button id="sliceDownBtn" type="button" tabindex="-1" aria-label="减少格子数">▼</button>
+      </div>
     </div>
     <input class="seed-input" id="seed" placeholder="输入 seed" value="20260724" />
     <button class="confirm-btn" id="confirmSeedBtn" type="button">确认</button>
@@ -268,6 +303,8 @@
   const seedInput = document.getElementById("seed");
   const confirmSeedBtn = document.getElementById("confirmSeedBtn");
   const sliceCountInput = document.getElementById("sliceCount");
+  const sliceUpBtn = document.getElementById("sliceUpBtn");
+  const sliceDownBtn = document.getElementById("sliceDownBtn");
   const withoutReplacementInput = document.getElementById("withoutReplacement");
   let drawIndex = 0;
   let currentRotation = 0;
@@ -410,6 +447,10 @@
     activeSeed = getInputSeedValue();
     activeSliceCount = getInputSliceCount();
     resetWheel();
+  }
+
+  function adjustSliceInput(delta) {
+    sliceCountInput.value = Math.min(10, Math.max(1, getInputSliceCount() + delta));
   }
 
   function removePendingNumber() {
@@ -557,8 +598,10 @@
   sliceCountInput.addEventListener("wheel", (event) => {
     event.preventDefault();
     const direction = event.deltaY > 0 ? -1 : 1;
-    sliceCountInput.value = Math.min(10, Math.max(1, getInputSliceCount() + direction));
+    adjustSliceInput(direction);
   }, { passive: false });
+  sliceUpBtn.addEventListener("click", () => adjustSliceInput(1));
+  sliceDownBtn.addEventListener("click", () => adjustSliceInput(-1));
   withoutReplacementInput.addEventListener("change", resetWheel);
   wheel.addEventListener("pointerdown", startDrag);
   wheel.addEventListener("pointermove", dragWheel);
