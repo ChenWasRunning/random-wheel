@@ -446,10 +446,12 @@
     if (isMobile) {
       const pagePath = window.location.pathname.replace(/\/index\.html$/, "/");
       const basePath = pagePath.endsWith("/") ? pagePath : `${pagePath}/`;
+      document.title = `${window.location.host}${basePath}${seedHash}`;
       window.history.replaceState(null, "", `${basePath}${seedHash}`);
       return;
     }
 
+    document.title = "随机转盘";
     window.history.replaceState(null, "", seedHash);
   }
 
