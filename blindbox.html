@@ -441,7 +441,16 @@
       return;
     }
 
-    window.history.replaceState(null, "", `#seed_${encodeDrawOrder()}`);
+    const seedHash = `#seed_${encodeDrawOrder()}`;
+    const isMobile = window.matchMedia("(max-width: 767px), (pointer: coarse)").matches;
+    if (isMobile) {
+      const pagePath = window.location.pathname.replace(/\/index\.html$/, "/");
+      const basePath = pagePath.endsWith("/") ? pagePath : `${pagePath}/`;
+      window.history.replaceState(null, "", `${basePath}${seedHash}`);
+      return;
+    }
+
+    window.history.replaceState(null, "", seedHash);
   }
 
   function renderWheel() {
