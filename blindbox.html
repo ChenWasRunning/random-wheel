@@ -150,7 +150,7 @@
     grid-template-areas:
       "slice-label seed-label ."
       "slice-input seed-input confirm"
-      "without without .";
+      ". without .";
     column-gap: 12px;
     row-gap: 6px;
     justify-content: center;
@@ -174,6 +174,7 @@
     grid-area: slice-input;
     justify-self: center;
     width: 74px;
+    transform: translateX(-8px);
   }
 
   .seed-input {
@@ -184,7 +185,7 @@
   .without-wrap {
     grid-area: without;
     justify-self: center;
-    width: 100%;
+    width: 132px;
   }
 
   label {
