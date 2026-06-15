@@ -70,12 +70,15 @@
 
   .num {
     position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 28px;
     font-weight: 700;
     color: #5a3b2e;
     width: 40px;
     height: 40px;
-    line-height: 40px;
+    transform-origin: center;
   }
 
   button {
@@ -160,7 +163,7 @@
     </div>
     <div class="field">
       <label for="sliceCount">幸运转盘格子数</label>
-      <input id="sliceCount" list="sliceCountOptions" inputmode="numeric" pattern="[0-9]*" value="6" />
+      <input id="sliceCount" type="number" list="sliceCountOptions" min="1" max="10" step="1" inputmode="numeric" value="6" />
       <datalist id="sliceCountOptions">
         <option value="1"></option>
         <option value="2"></option>
@@ -265,6 +268,7 @@
       label.innerText = number;
       label.style.left = `${center + Math.cos(radians) * radius - 20}px`;
       label.style.top = `${center + Math.sin(radians) * radius - 20}px`;
+      label.style.transform = `rotate(${angle}deg)`;
       wheel.appendChild(label);
     }
   }
@@ -342,6 +346,12 @@
 
   seedInput.addEventListener("change", resetWheel);
   sliceCountInput.addEventListener("change", resetWheel);
+  sliceCountInput.addEventListener("wheel", (event) => {
+    event.preventDefault();
+    const direction = event.deltaY > 0 ? -1 : 1;
+    sliceCountInput.value = Math.min(10, Math.max(1, getSliceCount() + direction));
+    resetWheel();
+  }, { passive: false });
   withoutReplacementInput.addEventListener("change", resetWheel);
   resetWheel();
 </script>
