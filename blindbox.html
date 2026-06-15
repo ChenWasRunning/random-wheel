@@ -489,8 +489,10 @@
   }
 
   function angleForIndex(index, count) {
-    const center = ((index + 0.5) * 360) / count;
-    return 360 - center;
+    const sliceDegrees = 360 / count;
+    const sliceStart = index * sliceDegrees;
+    const safeOffset = sliceDegrees * (0.1 + Math.random() * 0.8);
+    return 360 - (sliceStart + safeOffset);
   }
 
   function getPointerAngle(event) {
